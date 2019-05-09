@@ -1,6 +1,6 @@
 galaxy_info:
   author: Michał Czuba
-  description: Ansible role for install Conntrack Exporter for Prometheus. 
+  description: Ansible role for install Conntrack Exporter for Prometheus.
   company: CodiLime
 
   # If the issue tracker for your role is not on github, uncomment the
@@ -35,11 +35,13 @@ galaxy_info:
   # To view available platforms and versions (or releases), visit:
   # https://galaxy.ansible.com/api/v1/platforms/
   #
-  # platforms:
-  # - name: Fedora
-  #   versions:
-  #   - all
-  #   - 25
+  platforms:
+  - name: Fedora
+    versions:
+    - all
+  - name: Ubuntu
+    versions:
+     - all
   # - name: SomePlatform
   #   versions:
   #   - all
