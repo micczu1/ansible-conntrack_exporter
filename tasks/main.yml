@@ -1,0 +1,60 @@
+---
+
+- name: Create the Conntrack Exporter group
+  group:
+    name: "{{ __conntrack_exporter_group }}"
+    state: present
+    system: true
+  when: __conntrack_exporter_group is defined
+
+- name: Create the Conntrack Exporter user
+  user:
+    name: "{{ __conntrack_exporter_user }}"
+    groups: "{{ __conntrack_exporter_group }}"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    createhome: false
+    home: /
+  when: __conntrack_exporter_user is defined
+
+- name: Download conntrack_exporter binary to local folder
+  become: false
+  get_url:
+#https://github.com/hiveco/conntrack_exporter/releases/download/v0.3/conntrack_exporter-amd64-linux
+    url: "https://github.com/hiveco/conntrack_exporter/releases/download/v{{ conntrack_exporter_version }}/conntrack_exporter-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}-linux"
+    dest: "/tmp/conntrack_exporter-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}-linux"
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+
+- name: Propagate conntrack_exporter binaries
+  copy:
+    src: "/tmp/conntrack_exporter-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}-linux"
+    dest: "/usr/local/bin/conntrack_exporter"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - restart conntrack exporter
+
+  when: not ansible_check_mode
+- name: Copy the conntrack_exporter systemd service file
+  template:
+    src: conntrack_exporter.service.j2
+    dest: /etc/systemd/system/conntrack_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  no_log: true
+  notify:
+    - restart conntrack exporter
+
+- name: Ensure conntrack_exporter is enabled on boot
+  systemd:
+    name: conntrack_exporter
+    state: started
+    enabled: true

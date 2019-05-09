@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus Conntrack Exporter
+After=network.target
+
+[Service]
+Type=simple
+User={{ __conntrack_exporter_user|default("root") }}
+Group={{ __conntrack_exporter_group|default("root") }}
+ExecStart=/usr/local/bin/conntrack_exporter \
+    --listen-port={{conntrack_exporter_listen_port|default(9101)}} 
+
+SyslogIdentifier=conntrack_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
